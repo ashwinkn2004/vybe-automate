@@ -1,0 +1,39 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 3rem;
+    margin-top: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar .logo {
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    cursor: pointer;
+    margin-bottom: .5rem;
+}
+
+.navbar .logo span {
+    color: #1DB954;
+}
+
+
+.navbar button {
+    background-color: #1DB954;
+    color: black;
+    border: none;
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    font-size: .8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: .5rem;
+}
+
+.navbar button:hover {
+    transform: scale(1.05);
+    background-color: #1ed760;
+}
