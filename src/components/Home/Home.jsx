@@ -1,6 +1,7 @@
 import React from 'react'
 import './Home.css'
 import spotifyLogo from '../../assets/spotify.svg'
+import secureLogo from '../../assets/secure.svg'
 
 function Home() {
     return (
@@ -16,7 +17,13 @@ function Home() {
                         <img src={spotifyLogo} alt="Spotify Logo" />
                         Connect with Spotify
                     </button>
+                    <div className="secure">
+                        <img src={secureLogo} alt="Secure Logo" />
+                        <p>100% Secure Spotify Integration.</p>
+                    </div>
+                    
                 </div>
+                <div className="footer">&copy; 2026 VybeAutomate. All rights reserved.</div>
             </div>
         </>
     )

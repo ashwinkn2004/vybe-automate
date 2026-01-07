@@ -51,6 +51,33 @@
     margin: 0 auto 2.5rem auto;
     line-height: 1.6;
 }
+.footer{
+    position: absolute;
+    bottom: 0;
+    padding: 1rem;
+    color: #a0a0a0;
+    font-size: x-small;
+}
+
+.home-content .secure {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.home-content .secure img {
+    height: 18px;
+    width: 18px;
+}
+
+.home-content .secure p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #888;
+    font-weight: 500;
+}
 
 .home-content button {
     background-color: #1DB954;
