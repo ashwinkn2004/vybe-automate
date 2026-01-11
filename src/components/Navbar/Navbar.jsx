@@ -2,6 +2,9 @@ import React from 'react'
 import './Navbar.css'
 
 function Navbar() {
+    const handleLogin =()=>{
+        
+    }
   return (
     <>
     <div className="navbar">
@@ -9,7 +12,7 @@ function Navbar() {
             <span>Vybe</span>Automate
         </div>
         <div className="signin-btn">
-            <button>Login</button>
+            <button onClick={handleLogin}>Login</button>
         </div>
     </div>
     </>
