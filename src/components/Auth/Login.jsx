@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from '../../../firebase';
 import './Auth.css';
 
 const Login = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        username: '',
+        email: '',
         password: ''
     });
 
@@ -15,10 +18,24 @@ const Login = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Login attempt:', formData);
-        // Add authentication logic here
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+            const user = userCredential.user;
+
+            if (!user.emailVerified) {
+                await signOut(auth);
+                alert("Email not verified. Please check your inbox and verify your email specific address to login.");
+                return;
+            }
+
+            console.log('Login successful');
+            navigate('/');
+        } catch (error) {
+            console.error("Error logging in:", error);
+            alert("Invalid email or password");
+        }
     };
 
     return (
@@ -27,14 +44,14 @@ const Login = () => {
                 <h2 className="auth-title">Welcome Back</h2>
                 <form className="auth-form" onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="username">Username</label>
+                        <label htmlFor="email">Email</label>
                         <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            value={formData.username}
+                            type="email"
+                            id="email"
+                            name="email"
+                            value={formData.email}
                             onChange={handleChange}
-                            placeholder="Enter your username"
+                            placeholder="Enter your email"
                             required
                         />
                     </div>

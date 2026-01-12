@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../firebase';
 import './Auth.css';
 
 const Signup = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -17,33 +21,42 @@ const Signup = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleInitialSubmit = async (e) => {
         e.preventDefault();
         if (formData.password !== formData.confirmPassword) {
             alert("Passwords don't match!");
             return;
         }
-        console.log('Signup attempt:', formData);
-        // Add registration logic here
+
+        try {
+            // Create user in Authentication
+            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+            const user = userCredential.user;
+
+            // Send Verification Email
+            await sendEmailVerification(user);
+
+            // Store user info in Firestore
+            await setDoc(doc(db, "users", user.uid), {
+                username: formData.username,
+                email: formData.email,
+                password: formData.password,
+                uid: user.uid
+            });
+
+            alert(`Account created! A verification email has been sent to ${formData.email}. Please verify your email before logging in.`);
+            navigate('/login');
+        } catch (error) {
+            console.error("Error signing up:", error);
+            alert(error.message);
+        }
     };
 
     return (
         <div className="auth-container">
             <div className="auth-card">
                 <h2 className="auth-title">Create Account</h2>
-                <form className="auth-form" onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="username">Username</label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            placeholder="Choose a username"
-                            required
-                        />
-                    </div>
+                <form className="auth-form" onSubmit={handleInitialSubmit}>
                     <div className="form-group">
                         <label htmlFor="email">Email</label>
                         <input
