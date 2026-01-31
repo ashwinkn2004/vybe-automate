@@ -5,6 +5,7 @@ import Navbar from './components/Navbar/Navbar';
 import Home from './components/Home/Home';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
+import SpotifyCallback from './components/Spotify/SpotifyCallback';
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
@@ -13,6 +14,7 @@ createRoot(document.getElementById('root')).render(
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/callback" element={<SpotifyCallback />} />
     </Routes>
   </BrowserRouter>
 )
