@@ -79,14 +79,27 @@ const PlaylistList = () => {
         setLoading(true);
         const token = getAccessToken();
         if (token) {
-            // Lazy load tracks if real API, mock handles it nicely
-            import('../../services/spotifyService').then(async mod => {
-                const trackData = await mod.fetchPlaylistTracks(token, playlist.id);
-                if (trackData.items) {
+            try {
+                const trackData = await fetchPlaylistTracks(token, playlist);
+                if (trackData && trackData.items) {
                     setTracks(trackData.items);
+                } else if (trackData && trackData.error) {
+                    console.error("Error fetching tracks:", trackData.error);
+                    setTracks([]);
+                    alert("Failed to fetch tracks: " + (trackData.error.message || "Unknown error"));
+                } else {
+                    setTracks([]);
                 }
-                setLoading(false);
-            });
+            } catch (err) {
+                console.error("Fetch failed:", err);
+                setTracks([]);
+                alert("Failed to fetch tracks. Please check the network or console.");
+            }
+            setLoading(false);
+        } else {
+            console.warn("No valid token when clicking playlist.");
+            alert("Your session may have expired. Please disconnect and login again.");
+            setLoading(false);
         }
     };
 
@@ -181,17 +194,31 @@ const PlaylistList = () => {
                         ) : (
                             tracks.map((item, index) => {
                                 const track = item.track;
-                                const isActive = currentTrack && currentTrack.name === track.name;
+                                if (!track) return null;
+                                const isActive = currentTrack && currentTrack.id === track.id;
+                                
+                                // Format artist name
+                                const artistName = track.artists ? track.artists.map(a => a.name).join(', ') : track.artist || 'Unknown Artist';
+                                // Format duration mapping duration_ms to mm:ss
+                                let durationStr = track.duration;
+                                if (track.duration_ms) {
+                                    const minutes = Math.floor(track.duration_ms / 60000);
+                                    const seconds = ((track.duration_ms % 60000) / 1000).toFixed(0);
+                                    durationStr = `${minutes}:${(seconds < 10 ? "0" : "")}${seconds}`;
+                                } else if (!durationStr) {
+                                    durationStr = '0:00';
+                                }
+
                                 return (
                                     <div key={index} className={`track-row ${isActive ? 'active-track' : ''}`} onClick={() => playTrack(track)}>
                                         <div className="track-index">
                                             {isActive && isPlaying ? "⏸" : isActive ? "▶" : index + 1}
                                         </div>
                                         <div className="track-info">
-                                            <div className="track-name" style={isActive ? { color: '#1DB954' } : {}}>{track.name}</div>
-                                            <div className="track-artist">{track.artist}</div>
+                                            <div className="track-name" style={isActive ? { color: '#1DB954' } : {}}>{track.name || 'Unknown Track'}</div>
+                                            <div className="track-artist">{artistName}</div>
                                         </div>
-                                        <div className="track-duration">{track.duration}</div>
+                                        <div className="track-duration">{durationStr}</div>
                                     </div>
                                 );
                             })

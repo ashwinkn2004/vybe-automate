@@ -191,23 +191,32 @@ export const fetchPlaylists = async (token) => {
     return response.json();
 };
 
-export const fetchPlaylistTracks = async (token, playlistId) => {
+export const fetchPlaylistTracks = async (token, playlist) => {
     if (isDemoMode()) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 const playlists = getMockPlaylists();
-                const playlist = playlists.find(p => p.id === playlistId);
-                if (playlist && playlist.items) {
-                    resolve({ items: playlist.items.map(track => ({ track })) });
+                const playlistData = playlists.find(p => p.id === playlist.id);
+                if (playlistData && playlistData.items) {
+                    resolve({ items: playlistData.items.map(track => ({ track })) });
                 } else {
                     resolve({ items: [] });
                 }
             }, 400);
         });
     }
-    const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+    const url = playlist.tracks && playlist.tracks.href ? playlist.tracks.href : `https://api.spotify.com/v1/playlists/${playlist.id}/tracks`;
+    let response = await fetch(url + (url.includes('?') ? '&' : '?') + 'limit=100', {
         headers: { Authorization: `Bearer ${token}` }
     });
+    
+    // Fallback logic for Spotify's recent API deprecation forcing 403 on some playlists
+    if (response.status === 403) {
+        console.warn("Spotify API returned 403 Forbidden. Attempting backend proxy fallback...");
+        // Bypasses personal scopes by using server-side client credentials
+        response = await fetch(`http://127.0.0.1:8888/api/tracks?id=${playlist.id}`);
+    }
+
     return response.json();
 };
 

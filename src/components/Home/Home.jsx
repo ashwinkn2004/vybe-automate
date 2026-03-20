@@ -60,7 +60,7 @@ function Home() {
             <div className="home-content">
                 <h1>Automate Your Vibe.</h1>
                 <p>Seamlessly curate, archive, and sync your Spotify library with intelligent automation tools. Connect your account to get started instantly.</p>
-                <div className="button-group" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                <div className="button-group">
                     <button onClick={handleConnectClick}>
                         <img src={spotifyLogo} alt="Spotify Logo" />
                         {user ? "Connect with Spotify" : "Login to Connect"}

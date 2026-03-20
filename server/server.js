@@ -43,6 +43,39 @@ app.get('/callback', async (req, res) => {
     }
 });
 
+// Add a fallback backend proxy to fetch tracks using Client Credentials
+// This bypasses user-specific 403 errors for public and algorithmic playlists!
+app.get('/api/tracks', async (req, res) => {
+    const playlistId = req.query.id;
+    if (!playlistId) return res.status(400).send('Missing id');
+
+    try {
+        // 1. Get Client Credentials Token
+        const tokenResponse = await axios({
+            method: 'post',
+            url: 'https://accounts.spotify.com/api/token',
+            data: querystring.stringify({ grant_type: 'client_credentials' }),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Basic ' + Buffer.from(client_id + ':' + client_secret).toString('base64')
+            }
+        });
+        const serverToken = tokenResponse.data.access_token;
+
+        // 2. Fetch tracks using the server token
+        const tracksResponse = await axios({
+            method: 'get',
+            url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=100`,
+            headers: { 'Authorization': `Bearer ${serverToken}` }
+        });
+
+        res.json(tracksResponse.data);
+    } catch (error) {
+        console.error("Proxy fetch error:", error.response ? error.response.statusText : error.message);
+        res.status(error.response ? error.response.status : 500).json(error.response ? error.response.data : { error: error.message });
+    }
+});
+
 app.listen(8888, () => {
     console.log('Server running on port 8888 (HTTP)');
 });
