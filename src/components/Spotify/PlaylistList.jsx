@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getAccessToken, fetchPlaylists, fetchProfile, updatePlaylistDetails, logoutSpotify, isDemoMode } from '../../services/spotifyService';
+import { getAccessToken, fetchPlaylists, fetchProfile, updatePlaylistDetails, logoutSpotify, isDemoMode, fetchPlaylistTracks } from '../../services/spotifyService';
 import './Spotify.css';
 
 const PlaylistList = () => {
@@ -52,7 +52,7 @@ const PlaylistList = () => {
     // Audio handlers
     useEffect(() => {
         if (currentTrack) {
-            audio.src = currentTrack.url || "";
+            audio.src = currentTrack.preview_url || currentTrack.url || "";
             if (isPlaying) audio.play().catch(e => console.error(e));
         }
     }, [currentTrack, audio, isPlaying]);
@@ -203,18 +203,26 @@ const PlaylistList = () => {
                                 let durationStr = track.duration;
                                 if (track.duration_ms) {
                                     const minutes = Math.floor(track.duration_ms / 60000);
-                                    const seconds = ((track.duration_ms % 60000) / 1000).toFixed(0);
+                                    const seconds = Math.floor((track.duration_ms % 60000) / 1000);
                                     durationStr = `${minutes}:${(seconds < 10 ? "0" : "")}${seconds}`;
                                 } else if (!durationStr) {
                                     durationStr = '0:00';
                                 }
 
+                                const albumImageUrl = track.album?.images?.[0]?.url || track.album?.images?.[track.album?.images?.length - 1]?.url;
                                 return (
                                     <div key={index} className={`track-row ${isActive ? 'active-track' : ''}`} onClick={() => playTrack(track)}>
+                                        <div className="track-image-container">
+                                            {albumImageUrl ? (
+                                                <img src={albumImageUrl} alt="" className="track-image-small" />
+                                            ) : (
+                                                <div className="track-image-placeholder">♪</div>
+                                            )}
+                                        </div>
                                         <div className="track-index">
                                             {isActive && isPlaying ? "⏸" : isActive ? "▶" : index + 1}
                                         </div>
-                                        <div className="track-info">
+                                        <div className="track-info" style={{ textAlign: 'left' }}>
                                             <div className="track-name" style={isActive ? { color: '#1DB954' } : {}}>{track.name || 'Unknown Track'}</div>
                                             <div className="track-artist">{artistName}</div>
                                         </div>
