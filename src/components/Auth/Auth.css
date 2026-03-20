@@ -1,0 +1,121 @@
+.auth-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 100px);
+    padding: 1rem;
+    font-family: 'Poppins', sans-serif;
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.05);
+    /* Similar to home version-update */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    margin-top: 1rem;
+}
+
+.auth-title {
+    color: #fff;
+    font-size: 1.75rem;
+    margin-bottom: 1.25rem;
+    text-align: center;
+    font-weight: 700;
+    /* Matching Home h1 gradient style */
+    background: linear-gradient(135deg, #ffffff 0%, #b3b3b3 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.04em;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.form-group label {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    margin-left: 0.25rem;
+    font-weight: 500;
+}
+
+.form-group input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    /* Slightly different from rounds, but standard for inputs */
+    padding: 0.75rem 1rem;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+    font-family: inherit;
+}
+
+.form-group input:focus {
+    border-color: #1DB954;
+    /* Green accent */
+    box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
+}
+
+.auth-button {
+    background-color: #1DB954;
+    /* Green accent */
+    color: black;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 50px;
+    /* Rounded buttons like Home */
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s;
+    font-weight: 700;
+    margin-top: 1rem;
+    font-family: inherit;
+}
+
+.auth-button:hover {
+    background-color: #1ed760;
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
+}
+
+.auth-button:active {
+    transform: scale(0.98);
+}
+
+.auth-redirect {
+    margin-top: 1.5rem;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.auth-link {
+    color: #1DB954;
+    /* Green accent */
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 0.5rem;
+    transition: color 0.2s;
+}
+
+.auth-link:hover {
+    color: #1ed760;
+    text-decoration: underline;
+}
