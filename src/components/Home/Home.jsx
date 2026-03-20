@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../../../firebase'
-import { getLoginUrl, getAccessToken } from '../../services/spotifyService'
+import { loginWithSpotify, getAccessToken } from '../../services/spotifyService'
 import PlaylistList from '../Spotify/PlaylistList'
 import './Home.css'
 import spotifyLogo from '../../assets/spotify.svg'
@@ -28,11 +28,11 @@ function Home() {
         return () => unsubscribe();
     }, []);
 
-    const handleConnectClick = () => {
+    const handleConnectClick = async () => {
         if (!user) {
             navigate('/login');
         } else {
-            window.location.href = getLoginUrl();
+            await loginWithSpotify(); // Starts PKCE OAuth flow
         }
     };
 

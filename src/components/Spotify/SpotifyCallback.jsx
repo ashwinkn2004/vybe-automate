@@ -6,15 +6,22 @@ const SpotifyCallback = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const hash = getTokenFromUrl();
-        if (hash.access_token) {
-            setAccessToken(hash.access_token);
-            // Navigate back to home or dashboard, clearing the hash
-            navigate('/', { replace: true });
-        } else {
-            // Handle error or cancellation
-            navigate('/');
-        }
+        const handleCallback = () => {
+            const { access_token } = getTokenFromUrl();
+
+            if (access_token) {
+                // Store the token and clear it from the URL
+                setAccessToken(access_token);
+                window.history.replaceState({}, document.title, '/');
+                navigate('/', { replace: true });
+            } else {
+                // No token — something went wrong
+                console.error('No access_token in callback URL');
+                navigate('/');
+            }
+        };
+
+        handleCallback();
     }, [navigate]);
 
     return (
@@ -23,10 +30,13 @@ const SpotifyCallback = () => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            flexDirection: 'column',
+            gap: '1rem',
             color: 'white',
             background: '#121212'
         }}>
             <h2>Connecting to Spotify...</h2>
+            <p style={{ color: '#aaa', fontSize: '0.9rem' }}>Please wait while we authenticate you.</p>
         </div>
     );
 };

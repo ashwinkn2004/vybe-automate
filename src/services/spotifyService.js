@@ -1,17 +1,107 @@
-const CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID_HERE";
-const REDIRECT_URI = "http://localhost:5173/callback";
-const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
-const RESPONSE_TYPE = "token";
-const SCOPES = [
+// ============================================================
+// Spotify Service (Adapted from YouTube code request)
+// ============================================================
+
+const authEndpoint = "https://accounts.spotify.com/authorize";
+const clientId = "173495ba703a4560beb0512feaa35413";
+
+// SPOTIFY REQUIRES THIS TO BE "http://localhost..." or "http://127.0.0.1..."
+// If it is "https://localhost", Spotify will reject it with an "Insecure" error!
+const redirectUri = "http://127.0.0.1:8888/callback";
+
+const scopes = [
+    "user-library-read",
+    "playlist-read-private",
     "user-read-private",
     "user-read-email",
-    "playlist-read-private",
     "playlist-read-collaborative",
     "playlist-modify-public",
     "playlist-modify-private"
-];
+].join(" ");
 
-// SAMPLE AUDIO URLS (Copyright Free / Creative Commons)
+export const loginEndpoint = `${authEndpoint}?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+    redirectUri
+)}&scope=${encodeURIComponent(scopes)}&response_type=code&show_dialog=true`;
+
+// ── Login ─────────────────────────────────────────────────────
+
+export const loginWithSpotify = () => {
+    window.location.href = loginEndpoint;
+};
+
+
+
+// ── Token from URL params (set by backend redirect) ──────────
+
+/**
+ * Reads the access_token from the URL search params.
+ * Called in SpotifyCallback.jsx after the server redirect.
+ */
+export const getTokenFromUrl = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+        access_token: urlParams.get('access_token'),
+        refresh_token: urlParams.get('refresh_token'),
+        expires_in: urlParams.get('expires_in'),
+    };
+};
+
+// ── Token Storage ─────────────────────────────────────────────
+
+export const setAccessToken = (token) => {
+    localStorage.setItem("spotify_token", token);
+    localStorage.setItem("spotify_token_timestamp", Date.now());
+};
+
+export const getAccessToken = () => {
+    const token = localStorage.getItem("spotify_token");
+    const timestamp = localStorage.getItem("spotify_token_timestamp");
+    if (token) {
+        if (isDemoMode()) return token;
+        if (timestamp && Date.now() - Number(timestamp) < 3600 * 1000) return token;
+    }
+    return null;
+};
+
+export const logoutSpotify = () => {
+    localStorage.removeItem("spotify_token");
+    localStorage.removeItem("spotify_token_timestamp");
+    localStorage.removeItem("spotify_demo_mode");
+};
+
+// ── Demo Mode ─────────────────────────────────────────────────
+
+export const isDemoMode = () => {
+    return localStorage.getItem("spotify_demo_mode") === "true";
+};
+
+export const setDemoMode = (enabled) => {
+    if (enabled) {
+        localStorage.setItem("spotify_demo_mode", "true");
+        localStorage.setItem("spotify_token", "DEMO_TOKEN");
+        localStorage.setItem("spotify_token_timestamp", Date.now());
+        if (!localStorage.getItem("mock_playlists")) {
+            saveMockPlaylists(DEFAULT_MOCK_PLAYLISTS);
+        }
+    } else {
+        localStorage.removeItem("spotify_demo_mode");
+        logoutSpotify();
+    }
+};
+
+// ── Backward-compat alias ─────────────────────────────────────
+
+/** @deprecated use loginWithSpotify() */
+export const getLoginUrl = () => null;
+
+/** @deprecated not needed with server flow */
+export const getCodeFromUrl = () => null;
+
+/** @deprecated not needed with server flow */
+export const exchangeCodeForToken = async () => null;
+
+// ── Mock / Sample Data ────────────────────────────────────────
+
 const SAMPLE_TRACKS = [
     { name: "Electronic Vibe", artist: "Demo Artist 1", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", duration: "6:12" },
     { name: "Coding Flow", artist: "Demo Artist 2", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", duration: "7:05" },
@@ -20,7 +110,6 @@ const SAMPLE_TRACKS = [
     { name: "Review Time", artist: "Demo Artist 5", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3", duration: "4:32" }
 ];
 
-// DEFAULT MOCK DATA
 const DEFAULT_MOCK_PLAYLISTS = [
     {
         id: "mock1",
@@ -64,76 +153,18 @@ const DEFAULT_MOCK_PLAYLISTS = [
     }
 ];
 
-// Helper to get mock data
 const getMockPlaylists = () => {
     const stored = localStorage.getItem("mock_playlists");
-    if (stored) {
-        return JSON.parse(stored);
-    }
+    if (stored) return JSON.parse(stored);
     return DEFAULT_MOCK_PLAYLISTS;
 };
 
-// Helper to save mock data
 const saveMockPlaylists = (playlists) => {
     localStorage.setItem("mock_playlists", JSON.stringify(playlists));
 };
 
-export const isDemoMode = () => {
-    return localStorage.getItem("spotify_demo_mode") === "true";
-};
+// ── Spotify API Calls ─────────────────────────────────────────
 
-export const setDemoMode = (enabled) => {
-    if (enabled) {
-        localStorage.setItem("spotify_demo_mode", "true");
-        localStorage.setItem("spotify_token", "DEMO_TOKEN");
-        localStorage.setItem("spotify_token_timestamp", Date.now());
-        // Initialize mock data if not present
-        if (!localStorage.getItem("mock_playlists")) {
-            saveMockPlaylists(DEFAULT_MOCK_PLAYLISTS);
-        }
-    } else {
-        localStorage.removeItem("spotify_demo_mode");
-        logoutSpotify();
-    }
-};
-
-export const getLoginUrl = () => {
-    return `${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPES.join("%20")}&show_dialog=true`;
-};
-
-export const getTokenFromUrl = () => {
-    return window.location.hash
-        .substring(1)
-        .split("&")
-        .reduce((initial, item) => {
-            let parts = item.split("=");
-            initial[parts[0]] = decodeURIComponent(parts[1]);
-            return initial;
-        }, {});
-};
-
-export const setAccessToken = (token) => {
-    localStorage.setItem("spotify_token", token);
-    localStorage.setItem("spotify_token_timestamp", Date.now());
-};
-
-export const getAccessToken = () => {
-    const token = localStorage.getItem("spotify_token");
-    const timestamp = localStorage.getItem("spotify_token_timestamp");
-    if (token) {
-        if (isDemoMode()) return token;
-        if (timestamp && Date.now() - timestamp < 3600 * 1000) return token;
-    }
-    return null;
-};
-
-export const logoutSpotify = () => {
-    localStorage.removeItem("spotify_token");
-    localStorage.removeItem("spotify_token_timestamp");
-    localStorage.removeItem("spotify_demo_mode");
-};
-
-// API Calls
 export const fetchProfile = async (token) => {
     if (isDemoMode()) {
         return {
@@ -143,9 +174,7 @@ export const fetchProfile = async (token) => {
         };
     }
     const response = await fetch("https://api.spotify.com/v1/me", {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
     });
     return response.json();
 };
@@ -153,16 +182,11 @@ export const fetchProfile = async (token) => {
 export const fetchPlaylists = async (token) => {
     if (isDemoMode()) {
         return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({ items: getMockPlaylists() });
-            }, 600);
+            setTimeout(() => resolve({ items: getMockPlaylists() }), 600);
         });
     }
-
     const response = await fetch("https://api.spotify.com/v1/me/playlists", {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
     });
     return response.json();
 };
@@ -173,21 +197,16 @@ export const fetchPlaylistTracks = async (token, playlistId) => {
             setTimeout(() => {
                 const playlists = getMockPlaylists();
                 const playlist = playlists.find(p => p.id === playlistId);
-                // Return items in Spotify's structure: { items: [ { track: ... } ] }
                 if (playlist && playlist.items) {
-                    const tracks = playlist.items.map(track => ({ track }));
-                    resolve({ items: tracks });
+                    resolve({ items: playlist.items.map(track => ({ track })) });
                 } else {
                     resolve({ items: [] });
                 }
             }, 400);
         });
     }
-    // Real API call would go here
     const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
     });
     return response.json();
 };
@@ -208,7 +227,6 @@ export const updatePlaylistDetails = async (token, playlistId, data) => {
             }, 500);
         });
     }
-
     const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
         method: 'PUT',
         headers: {
