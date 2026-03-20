@@ -3,11 +3,11 @@
 // ============================================================
 
 const authEndpoint = "https://accounts.spotify.com/authorize";
-const clientId = "173495ba703a4560beb0512feaa35413";
+const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID || "173495ba703a4560beb0512feaa35413";
 
-// SPOTIFY REQUIRES THIS TO BE "http://localhost..." or "http://127.0.0.1..."
-// If it is "https://localhost", Spotify will reject it with an "Insecure" error!
-const redirectUri = "http://127.0.0.1:8888/callback";
+// In production this will be https://vybe.ashwinkn.tech/api/callback
+// Locally it will be http://127.0.0.1:8888/callback (set in .env)
+const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || "http://127.0.0.1:8888/callback";
 
 const scopes = [
     "user-library-read",
@@ -213,8 +213,9 @@ export const fetchPlaylistTracks = async (token, playlist) => {
     // Fallback logic for Spotify's recent API deprecation forcing 403 on some playlists
     if (response.status === 403) {
         console.warn("Spotify API returned 403 Forbidden. Attempting backend proxy fallback...");
-        // Bypasses personal scopes by using server-side client credentials
-        response = await fetch(`http://127.0.0.1:8888/api/tracks?id=${playlist.id}`);
+        // Use relative path - works on Vercel (/api/tracks) and locally via Vite proxy
+        const backendBase = import.meta.env.VITE_BACKEND_URL || '';
+        response = await fetch(`${backendBase}/api/tracks?id=${playlist.id}`);
     }
 
     return response.json();

@@ -7,6 +7,14 @@ export default defineConfig({
   plugins: [react(), basicSsl()],
   server: {
     port: 5173,
-    https: true,  // basicSsl plugin handles the cert automatically
+    https: true,  // basicSsl plugin handles the cert automatically for local Spotify OAuth
+    proxy: {
+      // Proxy /api/* to the local Express server during development
+      '/api': {
+        target: 'http://127.0.0.1:8888',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   }
 })
