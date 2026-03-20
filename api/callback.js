@@ -4,9 +4,8 @@
 const axios = require('axios');
 const querystring = require('querystring');
 
-const client_id = process.env.SPOTIFY_CLIENT_ID;
+const client_id = process.env.SPOTIFY_CLIENT_ID || '173495ba703a4560beb0512feaa35413';
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-const redirect_uri = process.env.SPOTIFY_REDIRECT_URI; // e.g. https://vybe.ashwinkn.tech/api/callback
 
 module.exports = async (req, res) => {
     const code = req.query.code || null;
@@ -14,6 +13,17 @@ module.exports = async (req, res) => {
     if (!code) {
         return res.status(400).json({ error: 'Missing code parameter' });
     }
+
+    // Derive origin dynamically from the incoming request so this works on
+    // vybe.ashwinkn.tech, any Vercel preview URL, or localhost — automatically.
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'vybe.ashwinkn.tech';
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const origin = `${protocol}://${host}`;
+
+    // This MUST match exactly what the frontend sent to Spotify during login
+    const redirect_uri = process.env.SPOTIFY_REDIRECT_URI || `${origin}/api/callback`;
+    // Send tokens back to the React frontend
+    const frontendUrl = process.env.FRONTEND_URL || origin;
 
     try {
         const response = await axios({
@@ -33,8 +43,7 @@ module.exports = async (req, res) => {
 
         const { access_token, refresh_token } = response.data;
 
-        // Redirect back to the frontend /callback route with tokens in query params
-        const frontendUrl = process.env.FRONTEND_URL || 'https://vybe.ashwinkn.tech';
+        // Redirect back to the React /callback route with tokens in query params
         res.redirect(`${frontendUrl}/callback?access_token=${access_token}&refresh_token=${refresh_token}`);
     } catch (error) {
         console.error('Spotify token exchange error:', error.response?.data || error.message);

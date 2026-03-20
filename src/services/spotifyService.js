@@ -5,10 +5,6 @@
 const authEndpoint = "https://accounts.spotify.com/authorize";
 const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID || "173495ba703a4560beb0512feaa35413";
 
-// In production this will be https://vybe.ashwinkn.tech/api/callback
-// Locally it will be http://127.0.0.1:8888/callback (set in .env)
-const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || "http://127.0.0.1:8888/callback";
-
 const scopes = [
     "user-library-read",
     "playlist-read-private",
@@ -19,15 +15,37 @@ const scopes = [
     "playlist-modify-private"
 ].join(" ");
 
-export const loginEndpoint = `${authEndpoint}?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-    redirectUri
-)}&scope=${encodeURIComponent(scopes)}&response_type=code&show_dialog=true`;
+/**
+ * Computes the Spotify redirect URI dynamically at call time.
+ * - On localhost / 127.0.0.1 → routes to local Express server (port 8888)
+ * - On any other hostname (Vercel, vybe.ashwinkn.tech) → uses /api/callback on same origin
+ * This means NO env vars are needed for the redirect URI to work correctly.
+ */
+const getRedirectUri = () => {
+    const host = window.location.hostname;
+    const isLocal = host === "localhost" || host === "127.0.0.1";
+    if (isLocal) {
+        return "http://127.0.0.1:8888/callback";
+    }
+    // Production: always build from current origin so it works on any domain/preview URL
+    return `${window.location.origin}/api/callback`;
+};
 
 // ── Login ─────────────────────────────────────────────────────
 
 export const loginWithSpotify = () => {
-    window.location.href = loginEndpoint;
+    const redirectUri = getRedirectUri();
+    const loginUrl = `${authEndpoint}?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+        redirectUri
+    )}&scope=${encodeURIComponent(scopes)}&response_type=code&show_dialog=true`;
+    window.location.href = loginUrl;
 };
+
+// Keep a static export for any code that imported loginEndpoint directly
+// (computed once at module load time — only safe for non-critical uses)
+export const loginEndpoint = `${authEndpoint}?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+    "http://127.0.0.1:8888/callback"
+)}&scope=${encodeURIComponent(scopes)}&response_type=code&show_dialog=true`;
 
 
 
